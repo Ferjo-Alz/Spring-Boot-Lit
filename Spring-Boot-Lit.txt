@@ -1,0 +1,54 @@
+@SpringBootApplication
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    CommandLineRunner init(LibroRepository libroRepository) {
+        return args -> {
+            libroRepository.save(new Libro("El Señor de los Anillos", "J.R.R. Tolkien", "978-84-206-6376-2"));
+            libroRepository.save(new Libro("Cien Años de Soledad", "Gabriel García Márquez", "978-84-290-1638-9"));
+            libroRepository.save(new Libro("Don Quijote de la Mancha", "Miguel de Cervantes", "978-84-672-3164-9"));
+            libroRepository.save(new Libro("2000 leguas de viaje submarino", "Julio Verne", "978-84-670-0050-0"));
+            libroRepository.save(new Libro("El Principito", "Antoine de Saint-Exupéry", "978-84-9722-666-6"));
+            libroRepository.save(new Libro("Orgullo y Prejuicio", "Jane Austen", "978-84-206-5681-5"));
+        };
+    }
+
+    @RestController
+    @RequestMapping("/libros")
+    public class LibroController {
+
+        @Autowired
+        private LibroRepository libroRepository;
+
+        @GetMapping("/buscar")
+        public List<Libro> buscar(@RequestParam String filtro) {
+            if (filtro.isEmpty()) {
+                return libroRepository.findAll();
+            } else {
+                return libroRepository.findByTituloContainingIgnoreCase(filtro);
+            }
+        }
+    }
+}
+
+@Entity
+public class Libro {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String titulo;
+    private String autor;
+    private String isbn;
+
+    // Getters y setters
+}
+
+interface LibroRepository extends JpaRepository<Libro, Long> {
+    List<Libro> findByTituloContainingIgnoreCase(String titulo);
+}
